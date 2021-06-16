@@ -1,23 +1,27 @@
-# Test allocation and free
+# Experiment with allocation and free
 
 See if I can "profile" alloc/free to get an insite on
 what the compiler generates. So ATM I'm using cargo-asm
 to "profile" and see the alloc/free.
 
-This Keys code is from code that has "api keys" as a
-key pair and for using the encryption libraries, HmacSha256,
-and these need the signing key as a &[u8]. So I need
-to convert String's to &[u8]. I had trouble getting it to
-work and finally came up with returning a Vec<u8>.
+I also learned how to efficiently convert a String or &str
+to a Vec<u8>.  Use `String.into_bytes()` but since `into_bytes()`
+"consumes" the String you need to use `String.clone().into_bytes()`
+or `str.to_string().into_bytes()`.
 
-Ideally, if we know that a String points to a Vec<u8> and
-if the String is immutable we should just be able to "cast" the
-pointer and length in the String to a Vec<u8>.
+This Keys code is from code that has "api keys" as a key pair
+and these keys are used with the encryption libraries, HmacSha256,
+when signing the key needs to be a &[u8]. So I need to convert
+String's to &[u8]. I had trouble getting it to work and finally
+came up with returning a Vec<u8>.
+
+Ideally, if we know that a String has-a Vec<u8> and since the
+String is immutable we should just be able to use the Vec<u8> in
+the String. But that leads to lifetime issues.
 
 The next best solution I came up with is to use `String::into_bytes()` which
-consumes the String so no copy is done compared to the `String::as_bytes()`. So
-what I've done currently is that `get_xk_or_err()` return a &str so no copy
-doing that:
+consumes the String so no copy is done compared to the `String::as_bytes()`.
+so `get_xk_or_err()` now return a &str, so no cloning doing that:
 ```
     pub fn get_sk_or_err(&self) -> Result<&str, Box<dyn Error>> {
         match &self.secret_key {
@@ -57,10 +61,10 @@ expr_alloc_free::Keys::get_sk_or_err:
  ret
 ```
 
-And `get_sk_vec_u8_or_err()` then uses `to_string()` on the
-`&str` which does one `alloc` and a `memcpy` (i.e. a clone) to create a string and
-then the `into_types()` "consumes" the `String` and returns it Vec<u8> so
-no additional clone.
+And `get_sk_vec_u8_or_err()` then uses `to_string()` on the `&str` which
+does one `alloc` and a `memcpy` (i.e. a clone) to create a string and
+then the `into_bytes()` "consumes" the `String` and returns its Vec<u8> so
+no additional cloning to do that.
 ```
     #[inline(never)]
     pub fn get_sk_vec_u8_or_err(&self) -> Result<Vec<u8>, Box<dyn Error>> {
