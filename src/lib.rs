@@ -68,7 +68,7 @@ impl Keys {
     //    //    v_u8.push(b);
     //    //}
     //    //Ok(v_u8)
-	
+
     //    //// As of rust 1.52.0 the asm:
     //    ////   $ cargo asm  --no-color --lib expr_alloc_free::Keys::get_sk_vec_u8_or_err > get_sk_vec_u8_or_err.four-lines.s
     //    //// is identical to the below code
@@ -85,7 +85,6 @@ impl Keys {
     //    //// is identical to the above code
     //    //Ok(self.get_sk_or_err()?.as_bytes().to_vec())
 
-
     //    //// So this is doing only one copy, AFAICT!
     //    //let c = self.get_sk_or_err()?.clone();
     //    //let c_ptr = c.as_ptr();
@@ -97,5 +96,4 @@ impl Keys {
     //    // So this is doing one alloca and one copy!
     //    Ok(self.get_sk_or_err()?.to_string().into_bytes())
     //}
-
 }
